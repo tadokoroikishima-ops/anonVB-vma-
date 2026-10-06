@@ -1,0 +1,13 @@
+{
+ "site": {"since": 1089, "slug": "xyz", "name": "Sample Board", "tags": "alpha beta gamma delta\nepsilon zeta eta theta\niota kappa lambda", "foot": "Sample Co.", "up": ""},
+ "catalog": [
+  {"id": 1, "title": "Sample thread", "img": "", "r": "", "f": ""},
+  {"id": 2, "title": "Another thread", "img": "", "r": "4", "f": "9"},
+  {"id": 3, "title": "Third thread", "img": "", "r": "0", "f": "0"}
+ ],
+ "thread": {"title": "Sample thread", "posts": [
+  {"no": 1, "name": "Anonymous", "subj": "", "y": 1096, "mo": 3, "d": 14, "h": 22, "mi": 41, "s": 9, "files": ["sample1.jpg"], "text": "First post."},
+  {"no": 2, "name": "Anonymous", "subj": "", "y": 1096, "mo": 3, "d": 14, "h": 22, "mi": 43, "s": 50, "files": ["sample2.jpg", "sample3.jpg", "sample4.jpg"], "text": ">>1 Reply with three files."},
+  {"no": 3, "name": "Anonymous", "subj": "", "y": 1096, "mo": 3, "d": 15, "h": 8, "mi": 2, "s": 31, "files": [], "text": "Text only."}
+ ]}
+}

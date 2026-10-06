@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Board</title><link rel="stylesheet" href="style.css"></head><body>
+<div id="gate"><div class="gb"><b>Enter passcode</b><br><input id="pw" type="password" autocomplete="off"> <button id="ok">OK</button><div id="err"></div></div></div>
+<div id="app" hidden>
+<div id="hd"><span>[ home / boards / overboard / help / watched threads / settings / <select><option>Default</option></select> ]</span><b id="sn"></b></div>
+<div id="v-bd">
+<div id="tags"></div>
+<div class="wrap"><main>
+<div class="ctr"><img id="logo" src="images/logo.png" alt="" onerror="this.outerHTML='<div class=lg>LOGO</div>'"><h1 id="bt"></h1></div>
+<fieldset class="frm"><legend>Mode: Reply</legend><table>
+<tr><th>Subject</th><td><input></td></tr>
+<tr><th>Message</th><td><textarea></textarea><br>Max message length: 0/4096</td></tr>
+<tr><th>Files</th><td><div class="drop">Drag your files to upload or<br>click here to select them</div><label><input type="checkbox" checked> Spoiler</label><br>Max file size: 1.95 GB<br>Max files: 25</td></tr>
+<tr><th>Captcha</th><td><div class="cap">a1b2c3</div><button type="button">Reload</button> 187<br><input placeholder="answer"><br><a href="#" onclick="return false">no cookies?</a></td></tr></table>
+<div class="ctr">More<br>Remember to follow the <a href="#" onclick="return false">rules</a><br><button type="button" class="rp">Reply</button></div></fieldset>
+<div class="tb">[ &#10064; / &#8630; / &#8681; / &#9638; / &#9776; ]</div><hr>
+<div id="th"></div><hr>
+<div><button type="button">Refresh</button> <label><input type="checkbox" checked> Auto <span id="au">22</span></label></div>
+<div>[ &#8679; / <a href="#" id="mg">Manage Board</a> / <a href="#" onclick="return false">Moderate Thread</a> / Unique posters: <span id="up"></span> ]</div>
+<div class="big">Show forms</div>
+<div class="ftr"><a href="#" onclick="return false">Contact / Report Abuse</a><br><br><a href="#" onclick="return false">Post or Image / Removals</a><br><br><span id="ft"></span></div>
+</main><aside id="cat"></aside></div></div>
+
+<div id="v-ad" hidden><div class="ad">
+<a href="#" id="bk">&laquo; Back to board</a>
+<fieldset><legend>Page</legend>
+<label>Since <input id="a-si" class="n" type="number"></label> <label>/slug/ <input id="a-sl"></label> <label>Name <input id="a-nm"></label><br>
+<label>Footer name <input id="a-ft"></label> <label>Unique posters (blank = auto) <input id="a-up" class="n"></label>
+<textarea id="a-tg" placeholder="Tag list: one group per line, items separated by spaces"></textarea>
+<button id="a-sp">Save</button></fieldset>
+<fieldset><legend>Catalogue</legend>
+<input id="c-t" placeholder="Title"> <input id="c-i" placeholder="thumb.jpg"> R <input id="c-r" class="n"> F <input id="c-f" class="n"> <button id="c-a">Add</button>
+<div class="hint">Thumbnail: file name in images/. R / F blank = automatic for the open thread, else 0.</div><div id="c-l"></div></fieldset>
+<fieldset><legend>Thread</legend>
+<label>Thread title <input id="t-t"></label> <button id="t-s">Save title</button>
+<div class="hint">The first post (lowest No.) is the opening post and shows the thread title.</div><hr>
+<input id="p-n" placeholder="Name (Anonymous)"> <input id="p-s" placeholder="Subject"> <input id="p-no" class="n" placeholder="No."><br>
+Date <input id="p-y" class="n" value="1096"> <input id="p-mo" class="n" placeholder="MM"> <input id="p-d" class="n" placeholder="DD"> <input id="p-h" class="n" placeholder="hh"> <input id="p-mi" class="n" placeholder="mm"> <input id="p-se" class="n" placeholder="ss">
+<textarea id="p-f" placeholder="Files: names in images/, separated by spaces"></textarea>
+<textarea id="p-x" placeholder="Text (>>2 makes a reply link)"></textarea>
+<button id="p-a">Post</button> <button id="p-c" hidden>Cancel edit</button>
+<div id="p-l"></div></fieldset>
+<fieldset><legend>Backup</legend><button id="ex">Export</button> <button id="im">Import</button> <button id="rs">Reset to default</button>
+<input id="fi" type="file" accept=".json,application/json" hidden>
+<div class="hint">Default data: json/default.json. Edits made in this browser take priority.</div><div id="msg" class="hint"></div></fieldset>
+</div></div></div>
+
+<script>
+(function(){
+var K='imgboard1089',OK=btoa('1089'); // change the passcode here: btoa('yourcode')
+var FN=/^[\w.\-]+\.(jpe?g|png|gif|webp)$/i;
+function $(i){return document.getElementById(i)}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function pad(n,w){return('000'+n).slice(-w)}
+function int(v,d,lo,hi){v=parseInt(v,10);return isNaN(v)?d:Math.min(hi,Math.max(lo,v))}
+function str(x){return x==null?'':String(x)}
+function blank(){return{site:{since:1089,slug:'xyz',name:'Sample Board',tags:'',foot:'Sample Co.',up:''},catalog:[],thread:{title:'Sample thread',posts:[]}}}
+var D=blank(),local=false,edit=null;
+function clean(s){
+ if(!s||!s.site||!s.thread||!Array.isArray(s.thread.posts)||!Array.isArray(s.catalog))return null;
+ return{site:{since:int(s.site.since,1089,1,9999),slug:str(s.site.slug).replace(/\W/g,'')||'xyz',name:str(s.site.name),tags:str(s.site.tags),foot:str(s.site.foot),up:str(s.site.up)},
+ catalog:s.catalog.map(function(c,i){return{id:+c.id||Date.now()+i,title:str(c.title),img:FN.test(c.img)?c.img:'',r:str(c.r),f:str(c.f)}}),
+ thread:{title:str(s.thread.title),posts:s.thread.posts.map(function(p,i){return{no:int(p.no,i+1,1,9e9),name:str(p.name)||'Anonymous',subj:str(p.subj),y:int(p.y,1096,1,9999),mo:int(p.mo,1,1,12),d:int(p.d,1,1,31),h:int(p.h,0,0,23),mi:int(p.mi,0,0,59),s:int(p.s,0,0,59),files:(Array.isArray(p.files)?p.files:[]).filter(function(f){return FN.test(f)}),text:str(p.text)}})}};
+}
+function save(){local=true;try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}}
+try{var s0=clean(JSON.parse(localStorage.getItem(K)));if(s0){D=s0;local=true}}catch(e){}
+function loadDef(cb){fetch('json/default.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).then(function(j){var s=clean(j);if(s&&!local)D=s;cb(!!s)}).catch(function(){cb(false)})}
+
+function body(t){var b=el('div','tx');t.split(/(>>\d+)/).forEach(function(s){if(/^>>\d+$/.test(s)){var a=el('a','rl',s);a.href='#p'+s.slice(2);b.appendChild(a)}else b.appendChild(document.createTextNode(s))});return b}
+function file(n,one){
+ var f=el('div','fl'+(one?' one':'')),i=el('div','fi'),o=el('a',0,'Open file'),h=el('a',0,'(Hide file)'),kb=el('span'),dm=el('span'),nm=el('a',0,n),im=el('img');
+ o.href=nm.href='images/'+n;o.target=nm.target='_blank';h.href='#';
+ i.append(o,' ',h,' (',kb,' ',dm,' ',nm,')');
+ h.onclick=function(e){e.preventDefault();im.hidden=!im.hidden};
+ im.onclick=function(){f.classList.toggle('ex')};
+ im.onload=function(){dm.textContent=im.naturalWidth+'x'+im.naturalHeight};
+ im.onerror=function(){im.remove();dm.textContent='(file not found)'};
+ fetch('images/'+n).then(function(r){return r.ok?r.blob():Promise.reject()}).then(function(b){kb.textContent=(b.size/1024).toFixed(2)+' KB';im.src=URL.createObjectURL(b)}).catch(function(){im.src='images/'+n});
+ f.append(i,im);return f}
+function post(p,op){
+ var r=el('div',op?'op':'post'+(p.files.length>1?' multi':'')),h=el('div','hd2'),fs=el('div'),cb=el('input');
+ r.id='p'+p.no;cb.type='checkbox';
+ p.files.forEach(function(n){fs.appendChild(file(n,p.files.length==1&&!op))});
+ var sj=op?D.thread.title:p.subj;
+ h.append(cb,op?' \u25B6 \u2298 \u25C9 ':' \u25B6 \u2298 ');
+ if(sj)h.append(el('span','sj',sj),' ');
+ var a=el('a','no','No. '+p.no);a.href='#p'+p.no;
+ h.append(el('span','nm',p.name),' '+pad(p.d,2)+'/'+pad(p.mo,2)+'/'+pad(p.y,4)+' '+pad(p.h,2)+':'+pad(p.mi,2)+':'+pad(p.s,2)+' ',a);
+ if(op)r.append(fs,h);else r.append(h,fs);
+ if(p.text)r.appendChild(body(p.text));
+ return r}
+function draw(){
+ var s=D.site,P=D.thread.posts.slice().sort(function(a,b){return a.no-b.no}),nf=0,nm={};
+ $('sn').textContent='since '+s.since;
+ $('bt').textContent='/'+s.slug+'/ - '+s.name+' \u2605';
+ var tg=$('tags');tg.textContent='';
+ s.tags.split('\n').filter(function(l){return l.trim()}).forEach(function(l,i){if(i)tg.append(' ');tg.append('[ '+l.trim().split(/\s+/).join(' / ')+' ]')});
+ var th=$('th');th.textContent='';
+ P.forEach(function(p,i){th.appendChild(post(p,i==0));nf+=p.files.length;nm[p.name]=1});
+ if(!P.length)th.appendChild(el('p',0,'No posts yet.'));
+ $('up').textContent=s.up!==''?s.up:Object.keys(nm).length;
+ $('ft').textContent='Copyright \u00A9 '+s.since+' '+s.foot+'. All rights reserved. Contact.';
+ var c=$('cat');c.textContent='';
+ D.catalog.forEach(function(x){
+  var cur=x.title===D.thread.title,e=el('div','ci'+(cur?' cur':'')),im=el('img'),t=el('div','ct');
+  im.src='images/'+(x.img||'noimage.png');
+  im.onload=function(){if(im.naturalHeight>im.naturalWidth)e.classList.add('side')};
+  im.onerror=function(){im.remove()};
+  t.append(x.title,el('br'),'R: '+(x.r!==''?x.r:cur?Math.max(0,P.length-1):0)+' / F: '+(x.f!==''?x.f:cur?nf:0));
+  e.append(im,t);c.appendChild(e)});
+ drawAd()}
+
+function row(txt,btns){var d=el('div','ar',txt+' ');btns.forEach(function(b){var x=el('button',0,b[0]);x.onclick=b[1];d.append(x,' ')});return d}
+function drawAd(){
+ var l=$('c-l');l.textContent='';
+ D.catalog.forEach(function(x){l.appendChild(row(x.title+' ('+(x.img||'no thumb')+') R:'+(x.r||'auto')+' F:'+(x.f||'auto'),[['Delete',function(){D.catalog=D.catalog.filter(function(q){return q!==x});save();draw()}]]))});
+ var pl=$('p-l');pl.textContent='';
+ D.thread.posts.slice().sort(function(a,b){return a.no-b.no}).forEach(function(p){
+  pl.appendChild(row('No.'+p.no+' '+p.name+' '+pad(p.d,2)+'/'+pad(p.mo,2)+'/'+pad(p.y,4)+' '+pad(p.h,2)+':'+pad(p.mi,2)+' ['+p.files.length+' files] '+p.text.slice(0,30),[
+   ['Edit',function(){edit=p;$('p-n').value=p.name;$('p-s').value=p.subj;$('p-no').value=p.no;$('p-y').value=p.y;$('p-mo').value=p.mo;$('p-d').value=p.d;$('p-h').value=p.h;$('p-mi').value=p.mi;$('p-se').value=p.s;$('p-f').value=p.files.join(' ');$('p-x').value=p.text;$('p-a').textContent='Update';$('p-c').hidden=false;window.scrollTo(0,$('p-n').offsetTop)}],
+   ['Delete',function(){D.thread.posts=D.thread.posts.filter(function(q){return q!==p});save();draw()}]]))})}
+function fillAd(){var s=D.site;$('a-si').value=s.since;$('a-sl').value=s.slug;$('a-nm').value=s.name;$('a-ft').value=s.foot;$('a-up').value=s.up;$('a-tg').value=s.tags;$('t-t').value=D.thread.title}
+function endEdit(){edit=null;['p-n','p-s','p-no','p-mo','p-d','p-h','p-mi','p-se','p-f','p-x'].forEach(function(i){$(i).value=''});$('p-a').textContent='Post';$('p-c').hidden=true}
+function show(v){$('v-bd').hidden=v!=='bd';$('v-ad').hidden=v!=='ad';window.scrollTo(0,0)}
+function unlock(){$('gate').hidden=true;$('app').hidden=false}
+function tryPass(){var v='';try{v=btoa($('pw').value)}catch(e){}
+ if(v===OK){try{sessionStorage.setItem('ok','1')}catch(e){}unlock()}else{$('err').textContent='Incorrect passcode.';$('pw').select()}}
+
+load();
+function load(){draw();fillAd()}
+if(!local)loadDef(load);
+$('ok').onclick=tryPass;$('pw').onkeydown=function(e){if(e.key==='Enter')tryPass()};
+$('mg').onclick=function(e){e.preventDefault();show('ad')};$('bk').onclick=function(e){e.preventDefault();show('bd')};
+$('a-sp').onclick=function(){D.site={since:int($('a-si').value,1089,1,9999),slug:$('a-sl').value.replace(/\W/g,'')||'xyz',name:$('a-nm').value,tags:$('a-tg').value,foot:$('a-ft').value,up:$('a-up').value.trim()};save();draw()};
+$('c-a').onclick=function(){var t=$('c-t').value.trim(),i=$('c-i').value.trim();if(!t)return;
+ D.catalog.push({id:Date.now(),title:t,img:FN.test(i)?i:'',r:$('c-r').value.trim(),f:$('c-f').value.trim()});$('c-t').value=$('c-i').value=$('c-r').value=$('c-f').value='';save();draw()};
+$('t-s').onclick=function(){D.thread.title=$('t-t').value.trim();save();draw()};
+$('p-a').onclick=function(){
+ var fl=$('p-f').value.split(/[\s,]+/).filter(function(f){return FN.test(f)}),x=$('p-x').value.replace(/\s+$/,''),mx=0;
+ D.thread.posts.forEach(function(q){mx=Math.max(mx,q.no)});
+ if(!x&&!fl.length)return;
+ var p={no:int($('p-no').value,edit?edit.no:mx+1,1,9e9),name:$('p-n').value.trim()||'Anonymous',subj:$('p-s').value.trim(),y:int($('p-y').value,1096,1,9999),mo:int($('p-mo').value,1,1,12),d:int($('p-d').value,1,1,31),h:int($('p-h').value,0,0,23),mi:int($('p-mi').value,0,0,59),s:int($('p-se').value,0,0,59),files:fl,text:x};
+ if(edit)D.thread.posts=D.thread.posts.filter(function(q){return q!==edit});
+ D.thread.posts.push(p);endEdit();save();draw()};
+$('p-c').onclick=endEdit;
+$('rs').onclick=function(){if(!confirm('Discard edits made in this browser and reload default.json?'))return;
+ try{localStorage.removeItem(K)}catch(e){}local=false;D=blank();load();
+ loadDef(function(ok){load();$('msg').textContent=ok?'Reset to default.json.':'default.json not found. Reset to blank.'})};
+$('ex').onclick=function(){var a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:'application/json'}));a.download='backup.json';document.body.appendChild(a);a.click();a.remove();$('msg').textContent='Exported.'};
+$('im').onclick=function(){$('fi').click()};
+$('fi').onchange=function(){var f=this.files[0],inp=this;if(!f)return;var rd=new FileReader();
+ rd.onload=function(){var s=null;try{s=clean(JSON.parse(rd.result))}catch(e){}
+  if(s){D=s;save();load();$('msg').textContent='Imported.'}else $('msg').textContent='Invalid backup file.';inp.value=''};rd.readAsText(f)};
+setInterval(function(){var n=+$('au').textContent;$('au').textContent=n<=1?30:n-1},1000);
+try{if(sessionStorage.getItem('ok')==='1')unlock()}catch(e){}
+})();
+</script></body></html>
